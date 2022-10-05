@@ -1,65 +1,44 @@
 #!/usr/bin/env node
 
 import { GearApi, getWasmMetadata, GearKeyring, CreateType } from '@gear-js/api';
-import { createWriteStream, readFileSync, writeFileSync } from 'fs';
-import { EventEmitter } from 'stream';
+import EventEmitter from 'events';
+import { readFileSync, writeFileSync } from 'fs';
 
-const metaWasm = readFileSync('./target/wasm32-unknown-unknown/release/test_1000.meta.wasm');
+const HANDLE_RECORDS = Number(process.env.HANDLE_RECORDS || '10');
+const INIT_RECORDS = Number(process.env.INIT_RECORDS || '500');
+const metaPath = process.env.META_PATH || './target/wasm32-unknown-unknown/release/test_1000.meta.wasm';
+const optPath = process.env.OPT_PATH || './target/wasm32-unknown-unknown/release/test_1000.opt.wasm';
 
 const cmd = process.argv[2];
-const programId = cmd === 'upload' ? undefined : process.argv[3];
-
-const INCREASE = 10;
+const programId = process.argv[3];
 
 const api = new GearApi();
-
+const metaWasm = readFileSync(metaPath);
 const newMessageEmitter = new EventEmitter();
 
 function generateMap(from, to) {
   const map = {};
-  for (let i = from; i < from + (to || INCREASE); i++) {
+  for (let i = from; i < from + (to || HANDLE_RECORDS); i++) {
     map[CreateType.create('u256', i).toHex()] = i * 12345;
   }
   return map;
 }
 
-function listenToBalanceUnreserved() {
-  const stream = createWriteStream('./gas.json');
-  const blockGas = api.blockGasLimit.toBigInt();
-  const counter = 0;
-  stream.write(`{\n`);
-  api.query.system.events((events) => {
-    events
-      .filter((event) => api.events.balances.Unreserved.is(event))
-      .forEach((event) => {
-        const burned = blockGas - event.event.data.amount.toBigInt();
-        stream.write(`${counter}: "${burned.toString()}",\n`);
-      });
-  });
-}
-
 function listenToMessagesDispatched() {
-  const messages = new Map();
   api.gearEvents.subscribeToGearEvent('MessagesDispatched', (event) => {
     event.data.statuses.forEach((value, key) => {
-      messages.set(key.toHex(), value.isSuccess ? true : false);
-      newMessageEmitter.emit('event', key.toHex(), value.isSuccess);
+      setTimeout(() => {
+        newMessageEmitter.emit('dispatched', key.toHex(), value.isSuccess);
+      }, 1000);
     });
   });
-  return (id) => {
-    if (messages.has(id)) {
-      const isSuccess = messages.get(id);
-      messages.delete(id);
-      return isSuccess;
-    }
-  };
 }
 
 async function upload(acc, meta) {
-  const optWasm = readFileSync('./target/wasm32-unknown-unknown/release/test_1000.opt.wasm');
+  const optWasm = readFileSync(optPath);
 
   const { programId } = api.program.upload(
-    { code: optWasm, initPayload: generateMap(0, 500), gasLimit: api.blockGasLimit },
+    { code: optWasm, initPayload: generateMap(0, INIT_RECORDS), gasLimit: api.blockGasLimit },
     meta,
   );
 
@@ -91,7 +70,7 @@ async function send(acc, meta, map) {
     api.message.signAndSend(acc, (result) => {
       result.events.forEach(({ event }) => {
         const { method, data } = event;
-        if (method === 'MessageEnqueued' && result.status.isFinalized) {
+        if (method === 'MessageEnqueued') {
           resolve(data.id.toHex());
         } else if (method === 'ExtrinsicFailed') {
           reject(api.getExtrinsicFailedError(event));
@@ -111,12 +90,13 @@ const main = async () => {
   }
 
   if (cmd === 'send') {
-    process.stdout.write(`Total: 500`);
-    listenToMessagesDispatched();
     const messages = new Map();
-    listenToBalanceUnreserved();
-    let total = 500;
-    newMessageEmitter.on('event', (id, isSuccess) => {
+    listenToMessagesDispatched();
+
+    let total = INIT_RECORDS;
+
+    process.stdout.write(`Total: ${total}`);
+    newMessageEmitter.on('dispatched', (id, isSuccess) => {
       if (isSuccess) {
         process.stdout.cursorTo(7);
         process.stdout.write(messages.get(id).toString());
@@ -124,16 +104,19 @@ const main = async () => {
         messages.delete(id);
       } else {
         process.stdout.write('/n');
-        console.log(`Message proccessing failed`);
-        console.log(`Added ${total} records`);
+        process.stdout.write(`Message proccessing failed\n`);
+        process.stdout.write(`Added ${total} records\n`);
         writeFileSync('./total', total.toString());
         process.exit(1);
       }
     });
 
-    for (let i = 500; i < 500000; i += INCREASE) {
+    for (let i = INIT_RECORDS; i < 500000; i += HANDLE_RECORDS) {
       messages.set(await send(acc, meta, generateMap(i)), i);
     }
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5000);
+    });
     console.log(`Added ${total} records`);
     writeFileSync('./total', total.toString());
     process.exit(0);
