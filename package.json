@@ -2,6 +2,7 @@
   "name": "btreemap-size-test",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "repository": "git@github.com:osipov-mit/gear-btreemap-size-test.git",
   "author": "Dmitry Osipov <dmith.osipov@gmail.com>",
   "license": "MIT",

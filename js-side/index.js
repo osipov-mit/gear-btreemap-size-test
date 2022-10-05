@@ -6,8 +6,8 @@ import { readFileSync, writeFileSync } from 'fs';
 
 const HANDLE_RECORDS = Number(process.env.HANDLE_RECORDS || '10');
 const INIT_RECORDS = Number(process.env.INIT_RECORDS || '500');
-const metaPath = process.env.META_PATH || './target/wasm32-unknown-unknown/release/test_1000.meta.wasm';
-const optPath = process.env.OPT_PATH || './target/wasm32-unknown-unknown/release/test_1000.opt.wasm';
+const metaPath = process.env.META_PATH || './target/wasm32-unknown-unknown/release/btreemap_size_test.meta.wasm';
+const optPath = process.env.OPT_PATH || './target/wasm32-unknown-unknown/release/btreemap_size_test.opt.wasm';
 
 const cmd = process.argv[2];
 const programId = process.argv[3];
