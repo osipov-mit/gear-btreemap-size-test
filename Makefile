@@ -5,9 +5,10 @@ upload:
 	@./js-side/index.js upload
 
 send:
-	@./js-side/index.js send 0x32ee6b715f84ef4752c5fd9b2f75e91acb4aa74cf252020670b89013f5bcb913
+	@./js-side/index.js send 0x6a91e1bc08930d78d9c20a9ee29db284509906bc254a17bbd0eba4df5bc803ee
 
 state:
-	@./js-side/index.js state 0xc3fa4653c7cdb9c25aeecb6eb84061e77592471183d0288c39592ee76c9199bb
+	@./js-side/index.js state 0x6a91e1bc08930d78d9c20a9ee29db284509906bc254a17bbd0eba4df5bc803ee
+
 
 .PHONY: build upload send state

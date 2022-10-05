@@ -12,6 +12,7 @@ const optPath = process.env.OPT_PATH || './target/wasm32-unknown-unknown/release
 const cmd = process.argv[2];
 const programId = process.argv[3];
 
+// const api = new GearApi({ providerAddress: 'ws://ec2-54-183-240-121.us-west-1.compute.amazonaws.com:9944' });
 const api = new GearApi();
 const metaWasm = readFileSync(metaPath);
 const newMessageEmitter = new EventEmitter();
@@ -82,6 +83,7 @@ async function send(acc, meta, map) {
 
 async function main() {
   await api.isReady;
+  console.log(`Connected to ${await api.nodeName()}`);
   const meta = await getWasmMetadata(metaWasm);
   const acc = await GearKeyring.fromSuri('//Alice');
 
@@ -95,11 +97,11 @@ async function main() {
 
     let total = INIT_RECORDS;
 
-    console.log(`Total: ${total}\n`);
+    console.log(`Total: ${total}`);
     newMessageEmitter.on('dispatched', (id, isSuccess) => {
       if (isSuccess) {
-        console.log(`Total: ${messages.get(id).toString()}\n`);
         total = messages.get(id);
+        total % 50 === 0 && console.log(`Total: ${messages.get(id).toString()}\n`);
         messages.delete(id);
       } else {
         console.log(`Message proccessing failed\n`);
