@@ -80,7 +80,7 @@ async function send(acc, meta, map) {
   );
 }
 
-const main = async () => {
+async function main() {
   await api.isReady;
   const meta = await getWasmMetadata(metaWasm);
   const acc = await GearKeyring.fromSuri('//Alice');
@@ -95,28 +95,27 @@ const main = async () => {
 
     let total = INIT_RECORDS;
 
-    process.stdout.write(`Total: ${total}`);
+    console.log(`Total: ${total}\n`);
     newMessageEmitter.on('dispatched', (id, isSuccess) => {
       if (isSuccess) {
-        process.stdout.cursorTo(7);
-        process.stdout.write(messages.get(id).toString());
+        console.log(`Total: ${messages.get(id).toString()}\n`);
         total = messages.get(id);
         messages.delete(id);
       } else {
-        process.stdout.write('/n');
-        process.stdout.write(`Message proccessing failed\n`);
-        process.stdout.write(`Added ${total} records\n`);
+        console.log(`Message proccessing failed\n`);
+        console.log(`Added ${total} records\n`);
         writeFileSync('./total', total.toString());
         process.exit(1);
       }
     });
 
     for (let i = INIT_RECORDS; i < 500000; i += HANDLE_RECORDS) {
-      messages.set(await send(acc, meta, generateMap(i)), i);
+      messages.set(await send(acc, meta, generateMap(i)), i + HANDLE_RECORDS);
     }
     await new Promise((resolve) => {
       setTimeout(resolve, 5000);
     });
+
     console.log(`Added ${total} records`);
     writeFileSync('./total', total.toString());
     process.exit(0);
@@ -125,7 +124,7 @@ const main = async () => {
   if (cmd === 'state') {
     console.log(await readState());
   }
-};
+}
 
 main()
   .then(() => process.exit(0))
