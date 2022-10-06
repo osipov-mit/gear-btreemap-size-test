@@ -2,13 +2,13 @@ build:
 	@cargo build --release
 
 upload:
-	@OPT_PATH=btreemap_size_test.opt.wasm META_PATH=btreemap_size_test.meta.wasm ./js-side/index.js upload
+	@INIT_RECORDS=50 OPT_PATH=btreemap_size_test.opt.wasm META_PATH=btreemap_size_test.meta.wasm ./js-side/index.js upload
 
 send:
-	@HANDLE_SIZE=1 META_PATH=btreemap_size_test.meta.wasm ./js-side/index.js send 0xb627069221eda05a92f839a2a9ca8229c9f56357bad3007d96660449608f7342
+	@HANDLE_RECORDS=50 INIT_RECORDS=3000 META_PATH=btreemap_size_test.meta.wasm ./js-side/index.js send 0x894ad50e07d22a003f2a5629f743c9566ec1f9dda37242c0b15735304346be17
 
 state:
-	@./js-side/index.js state 0xa5996bd3229244cf96551af553a449c00bd885a5b75b72b4e1030419bbeae00d
+	@./js-side/index.js state 0x894ad50e07d22a003f2a5629f743c9566ec1f9dda37242c0b15735304346be17
 
 
 .PHONY: build upload send state

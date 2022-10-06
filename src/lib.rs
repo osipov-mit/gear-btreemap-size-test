@@ -34,6 +34,6 @@ gstd::metadata! {
         input: Vec<(ActorId, u128)>,
     handle:
         input: Vec<(ActorId, u128)>,
-    // state:
-        // output: BTreeMap<ActorId, u128>,
+    state:
+        output: BTreeMap<ActorId, u128>,
 }

@@ -20,7 +20,8 @@ const newMessageEmitter = new EventEmitter();
 function generateMap(from, to) {
   const map = [];
   for (let i = from; i < from + (to || HANDLE_RECORDS); i++) {
-    map.push[[CreateType.create('u256', i).toHex(), i * 12345]];
+    const item = [CreateType.create('u256', i).toHex(), i * 12345];
+    map.push(item);
   }
   return map;
 }
