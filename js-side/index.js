@@ -18,9 +18,9 @@ const metaWasm = readFileSync(metaPath);
 const newMessageEmitter = new EventEmitter();
 
 function generateMap(from, to) {
-  const map = {};
+  const map = [];
   for (let i = from; i < from + (to || HANDLE_RECORDS); i++) {
-    map[CreateType.create('u256', i).toHex()] = i * 12345;
+    map.push[[CreateType.create('u256', i).toHex(), i * 12345]];
   }
   return map;
 }
